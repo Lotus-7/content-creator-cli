@@ -1,7 +1,7 @@
 {
   "name": "creator-cli",
   "version": "0.1.0",
-  "description": "A workflow-first CLI for content creators.",
+  "description": "一个面向内容创作者的命令行工具，帮助用 AI 保持个人风格、提高内容生产效率",
   "type": "module",
   "bin": {
     "creator": "./src/cli.js"
@@ -12,5 +12,29 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "keywords": [
+    "cli",
+    "content-creator",
+    "ai",
+    "writing",
+    "创作",
+    "内容创作",
+    "写作工具"
+  ],
+  "author": "Lotus-7",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lotus-7/creator-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lotus-7/creator-cli/issues"
+  },
+  "homepage": "https://github.com/Lotus-7/creator-cli#readme",
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
 }

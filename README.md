@@ -21,24 +21,41 @@ cd creator-cli
 
 # 确保已安装 Node.js 20+
 node --version
+
+# （推荐）创建全局命令链接，之后可以直接用 creator 命令
+npm link
+```
+
+安装完成后，你可以直接使用 `creator` 命令，无需每次输入 `node ./src/cli.js`：
+
+```bash
+creator init
+creator topic "为什么普通人做自媒体总是断更" --platform xiaohongshu
+```
+
+如果没有使用 `npm link`，也可以用以下方式运行：
+
+```bash
+node ./src/cli.js init
+node ./src/cli.js topic "为什么普通人做自媒体总是断更" --platform xiaohongshu
 ```
 
 ## 快速开始
 
 ```bash
 # 初始化配置
-node ./src/cli.js init
+creator init
 
 # 设置 AI 提供商（以 OpenRouter 为例）
-node ./src/cli.js profile set aiProvider openrouter
-node ./src/cli.js profile provider openrouter --enable --model openai/gpt-4.1-mini
+creator profile set aiProvider openrouter
+creator profile provider openrouter --enable --model openai/gpt-4.1-mini
 export OPENROUTER_API_KEY=你的密钥
 
 # 测试连接
-node ./src/cli.js providers test
+creator providers test
 
 # 开始创作
-node ./src/cli.js topic "为什么普通人做自媒体总是断更" --platform xiaohongshu
+creator topic "为什么普通人做自媒体总是断更" --platform xiaohongshu
 ```
 
 ## 内容生产流程
