@@ -274,4 +274,4 @@ MIT
 ## 链接
 
 - npm: https://www.npmjs.com/package/content-creator-cli
-- GitHub: https://github.com/Lotus-7/creator-cli
+- GitHub: https://github.com/Lotus-7/content-creator-cli
