@@ -172,36 +172,49 @@ async function callOpenRouter(config, request) {
   return extractText(json.choices?.[0]?.message?.content);
 }
 
+function getAvailableProviders(providers) {
+  const available = [];
+  for (const [name, config] of Object.entries(providers.providers || {})) {
+    if (config.type !== "local" && config.enabled && process.env[config.apiKeyEnv]) {
+      available.push(name);
+    }
+  }
+  return available;
+}
+
+export function formatProviderError(providers) {
+  const available = getAvailableProviders(providers);
+  const allProviders = Object.entries(providers.providers || {})
+    .filter(([_, config]) => config.type !== "local")
+    .map(([name, config]) => `  - ${name} (env: ${config.apiKeyEnv})`)
+    .join("\n");
+
+  if (available.length > 0) {
+    return `No provider is currently active. Available providers with API keys:\n${available.map(n => `  - ${n}`).join("\n")}\n\nUse "creator providers use <name>" to switch.`;
+  }
+
+  return `No AI provider configured. Please set up a provider:\n${allProviders}\n\nSteps:\n  1. Choose a provider from the list above\n  2. Export its API key (e.g., export OPENROUTER_API_KEY=your_key)\n  3. Enable it: creator profile provider <name> --enable\n  4. Test: creator providers test`;
+}
+
 export async function generateWithProvider({ providers, profile, task, modelOverride }) {
-  const providerName = modelOverride?.provider || profile.aiProvider || providers.defaultProvider || "local";
+  const providerName = modelOverride?.provider || profile.aiProvider || providers.defaultProvider;
   const config = providers.providers?.[providerName];
 
   if (!config) {
-    return {
-      provider: "local",
-      model: "creator-local-v1",
-      mode: "fallback",
-      reason: `Unknown provider: ${providerName}`
-    };
+    throw new Error(formatProviderError(providers));
   }
 
-  if (config.type === "local" || !config.enabled) {
-    return {
-      provider: providerName,
-      model: config.model,
-      mode: "fallback",
-      reason: config.enabled ? "Local provider selected" : `Provider ${providerName} is disabled`
-    };
+  if (config.type === "local") {
+    throw new Error(formatProviderError(providers));
+  }
+
+  if (!config.enabled) {
+    throw new Error(`Provider "${providerName}" is disabled. Enable it with: creator profile provider ${providerName} --enable`);
   }
 
   const apiKey = process.env[config.apiKeyEnv];
   if (!apiKey) {
-    return {
-      provider: providerName,
-      model: config.model,
-      mode: "fallback",
-      reason: `Missing env var ${config.apiKeyEnv}`
-    };
+    throw new Error(`Missing API key for ${providerName}. Expected env var: ${config.apiKeyEnv}\n\nExport it with: export ${config.apiKeyEnv}=your_key`);
   }
 
   const request = {
@@ -221,12 +234,7 @@ export async function generateWithProvider({ providers, profile, task, modelOver
   } else if (config.type === "openrouter") {
     text = await callOpenRouter(config, request);
   } else {
-    return {
-      provider: "local",
-      model: "creator-local-v1",
-      mode: "fallback",
-      reason: `Unsupported provider type: ${config.type}`
-    };
+    throw new Error(`Unsupported provider type: ${config.type} for ${providerName}`);
   }
 
   return {

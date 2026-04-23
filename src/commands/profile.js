@@ -55,6 +55,7 @@ export async function runProfile(positionals, options) {
       throw new Error(`Unknown provider: ${name}`);
     }
 
+    const wasEnabled = provider.enabled;
     if (options.enable) provider.enabled = true;
     if (options.disable) provider.enabled = false;
     if (options.model) provider.model = options.model;
@@ -62,8 +63,18 @@ export async function runProfile(positionals, options) {
     if (options.apiKeyEnv) provider.apiKeyEnv = options.apiKeyEnv;
 
     if (options.enable || options.disable || options.model || options.baseUrl || options.apiKeyEnv) {
+      // Auto-switch to this provider if it was just enabled
+      if (options.enable && !wasEnabled) {
+        context.providers.defaultProvider = name;
+        context.profile.aiProvider = name;
+        context.profile.aiModel = provider.model;
+      }
+
       await saveProviders(context.providers);
-      printSuccess(`Provider updated: ${name}`);
+      await saveProfile(context.profile);
+
+      const switchMsg = options.enable && !wasEnabled ? ` (now default)` : "";
+      printSuccess(`Provider updated: ${name}${switchMsg}`);
       return;
     }
 
