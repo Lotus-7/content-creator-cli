@@ -98,21 +98,27 @@ export async function runChat() {
             break;
           }
           startSpinner("思考中...");
-          const messages = [
-            { role: "system", content: CHAT_SYSTEM_PROMPT },
-            ...chatHistory.slice(-6), // 保留最近3轮对话
-            { role: "user", content: idea }
-          ];
+
+          // 构建对话历史字符串
+          let conversationHistory = "";
+          if (chatHistory.length > 0) {
+            conversationHistory = "\n\n对话历史:\n" + chatHistory.map(m => {
+              const role = m.role === "user" ? "用户" : "助手";
+              return `${role}: ${m.content}`;
+            }).join("\n");
+          }
+
+          const userPrompt = idea + conversationHistory;
           const result = await generateWithProvider({
             providers: context.providers,
             profile: context.profile,
             task: {
-              type: "chat",
-              messages
+              system: CHAT_SYSTEM_PROMPT,
+              user: userPrompt
             }
           });
           stopSpinner("", true);
-          const response = result.content;
+          const response = result.text;
           console.log(`\n${response}`);
           chatHistory.push(
             { role: "user", content: idea },
