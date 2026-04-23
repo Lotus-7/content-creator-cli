@@ -1,6 +1,6 @@
 {
   "name": "content-creator-cli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "一个面向内容创作者的命令行工具，帮助用 AI 保持个人风格、提高内容生产效率",
   "type": "module",
   "bin": {

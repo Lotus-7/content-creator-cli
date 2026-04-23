@@ -33,10 +33,22 @@ export async function runChat() {
   console.log("    /draft <想法>   - 生成初稿");
   console.log("    /title <想法>   - 生成标题");
   console.log("    /ask <问题>     - 自由对话");
+  console.log("    /draft /outline /title 不带参数则使用上次话题");
   console.log("    /exit           - 退出");
   console.log("\n  直接输入内容默认执行 /topic + /title\n");
 
   let chatHistory = [];
+  let lastTopic = ""; // 记录上一个讨论的话题
+
+  // 检测是否为继续指令（而非新话题）
+  function isContinuationInput(text) {
+    const continuationKeywords = [
+      "上面", "讨论", "接着", "继续", "基于", "根据",
+      "写成", "变成", "生成", "扩展", "展开", "完整",
+      "很好", "不错", "可以", "好的", "行", "嗯"
+    ];
+    return continuationKeywords.some(kw => text.includes(kw)) && text.length < 30;
+  }
 
   while (true) {
     const line = (await rl.question("\n> ")).trim();
@@ -50,7 +62,25 @@ export async function runChat() {
 
     const [command, ...rest] = line.split(" ");
     const payload = rest.join(" ").trim();
-    const idea = command.startsWith("/") ? payload : line;
+    let idea = command.startsWith("/") ? payload : line;
+
+    // 如果是继续指令且没有上次话题，提示用户
+    if ((isContinuationInput(idea) || !idea) && !lastTopic &&
+        ["/topic", "/outline", "/draft", "/title"].includes(command)) {
+      printError("没有可以继续的话题，请先输入一个想法");
+      continue;
+    }
+
+    // 如果是继续指令，使用上次话题
+    if (isContinuationInput(idea) && lastTopic) {
+      idea = lastTopic;
+    } else if (idea && !command.startsWith("/")) {
+      // 直接输入内容，更新 lastTopic
+      lastTopic = idea;
+    } else if (idea && !isContinuationInput(idea)) {
+      // 新话题，更新 lastTopic
+      lastTopic = idea;
+    }
 
     if (!idea && command !== "/chat") {
       printError("请输入内容");
@@ -124,6 +154,8 @@ export async function runChat() {
             { role: "user", content: idea },
             { role: "assistant", content: response }
           );
+          // 更新 lastTopic 为用户的问题
+          lastTopic = idea;
           break;
         }
         default: {
