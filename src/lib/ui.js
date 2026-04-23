@@ -82,7 +82,7 @@ export function stopSpinner(message = "", success = true) {
   clearInterval(spinnerInterval);
   spinnerInterval = null;
 
-  const icon = success ? "✓" : "✗";
+  const icon = success ? "✔" : "✖";
   const color = success ? "green" : "red";
   process.stdout.write(`\r${colorize(color, icon)} ${message}\n`);
 }
@@ -92,65 +92,65 @@ export function clearLine() {
 }
 
 export function printHeader(text) {
-  const line = "─".repeat(Math.max(40, text.length + 4));
-  console.log(colorize("cyan", line));
-  console.log(colorize("bright", colorize("cyan", `  ${text}  `)));
-  console.log(colorize("cyan", line));
+  const line = "─";
+  const padding = " ".repeat(2);
+  console.log(colorize("dim", line.repeat(50)));
+  console.log(`${padding}${colorize("bright", text)}`);
+  console.log(colorize("dim", line.repeat(50)));
 }
 
-export function printDivider(char = "─", length = 40) {
-  console.log(colorize("gray", char.repeat(length)));
+export function printDivider(char = "─", length = 50) {
+  console.log(colorize("dim", char.repeat(length)));
 }
 
 export function printLabel(label, text, indent = "") {
   const labelColor = "cyan";
-  const coloredLabel = colorize(labelColor, `${label}:`);
-  console.log(`${indent}${coloredLabel} ${text}`);
+  const separator = colorize("dim", "›");
+  const coloredLabel = colorize(labelColor, label);
+  console.log(`${indent}${separator} ${coloredLabel}: ${text}`);
 }
 
 export function printList(items, options = {}) {
-  const { emoji = "•", indent = "" } = options;
-  items.forEach((item, index) => {
-    const prefix = typeof emoji === "string" ? emoji : emoji[index];
-    console.log(`${indent}${prefix} ${item}`);
+  const { indent = "  " } = options;
+  items.forEach((item) => {
+    console.log(`${indent}${colorize("dim", "•")} ${item}`);
   });
 }
 
 export function formatTopicCard(data) {
   console.log();
-  printHeader("📝 选题卡片");
-
-  printLabel("💡 选题", data.idea, "  ");
-  printLabel("🎯 领域", data.niche, "  ");
-  printLabel("👥 受众", data.audience, "  ");
-  printLabel("📱 平台", data.platform, "  ");
-  printLabel("🎨 语气", data.tone, "  ");
+  printHeader("TOPIC CARD");
 
   console.log();
-  printLabel("🔑 核心角度", "", "  ");
+  printLabel("Idea", data.idea);
+  printLabel("Niche", data.niche);
+  printLabel("Audience", data.audience);
+  printLabel("Platform", data.platform);
+  printLabel("Tone", data.tone);
+
+  console.log();
+  printLabel("Angle", "");
   console.log(`  ${colorize("bright", data.angle)}`);
 
   console.log();
-  printLabel("⚡ 冲突点", "", "  ");
-  console.log(`  ${data.coreConflict}`);
+  printLabel("Conflict", data.coreConflict);
 
   console.log();
-  printLabel("🎣 开头钩子", "", "  ");
-  console.log(`  ${colorize("yellow", data.hook)}`);
+  printLabel("Hook", "");
+  console.log(`  ${colorize("cyan", data.hook)}`);
 
   console.log();
-  printLabel("💎 读者收获", "", "  ");
-  console.log(`  ${data.payoff}`);
+  printLabel("Payoff", data.payoff);
 
   if (data.pillarsUsed && data.pillarsUsed.length) {
     console.log();
-    printLabel("📚 涉及领域", data.pillarsUsed.join("、"), "  ");
+    printLabel("Pillars", data.pillarsUsed.join(" / "));
   }
 
   if (data.seriesIdeas && data.seriesIdeas.length) {
     console.log();
-    printLabel("📖 系列延伸", "", "  ");
-    printList(data.seriesIdeas, { emoji: "  ", indent: "  " });
+    printLabel("Series", "");
+    printList(data.seriesIdeas);
   }
 
   console.log();
@@ -159,12 +159,14 @@ export function formatTopicCard(data) {
 
 export function formatOutline(data) {
   console.log();
-  printHeader("📋 内容大纲");
+  printHeader("OUTLINE");
 
-  console.log(colorize("bright", colorize("cyan", `\n${data.title}\n`)));
+  console.log();
+  console.log(colorize("bright", data.title));
+  console.log();
 
   data.sections.forEach((section, index) => {
-    const num = colorize("cyan", `${index + 1}.`);
+    const num = colorize("cyan", `${String(index + 1)}.`);
     console.log(`  ${num} ${section}`);
   });
 
@@ -174,7 +176,8 @@ export function formatOutline(data) {
 
 export function formatDraft(content) {
   console.log();
-  printHeader("📄 内容初稿");
+  printHeader("DRAFT");
+
   console.log();
   console.log(content);
   console.log();
@@ -183,20 +186,20 @@ export function formatDraft(content) {
 
 export function formatTitles(data) {
   console.log();
-  printHeader("✨ 标题选项");
+  printHeader("TITLES");
 
   if (data.titles && data.titles.length) {
     console.log();
     data.titles.forEach((title, index) => {
-      const num = colorize("cyan", `${String(index + 1).padStart(2)}.`);
+      const num = colorize("dim", `${String(index + 1).padStart(2, "0")}.`);
       console.log(`  ${num} ${title}`);
     });
   }
 
   if (data.formulas && data.formulas.length) {
     console.log();
-    printLabel("📐 标题公式", "", "  ");
-    printList(data.formulas, { emoji: "  ", indent: "  " });
+    printLabel("Formulas", "");
+    printList(data.formulas);
   }
 
   console.log();
@@ -205,15 +208,16 @@ export function formatTitles(data) {
 
 export function formatCalendar(data) {
   console.log();
-  printHeader("📅 发布日历");
+  printHeader("CALENDAR");
 
   if (data.days && data.days.length) {
     console.log();
     data.days.forEach((day, index) => {
       const date = colorize("cyan", day.date);
-      const num = colorize("gray", `#${String(index + 1).padStart(2, "0")}`);
-      console.log(`  ${num} ${date} | ${day.platform} | ${day.topic}`);
-      console.log(`     格式: ${day.format} | 目标: ${day.goal} | 角度: ${day.angle}`);
+      const num = colorize("dim", `#${String(index + 1).padStart(2, "0")}`);
+      console.log(`  ${num} ${date}`);
+      console.log(`      Platform: ${day.platform} | Topic: ${day.topic}`);
+      console.log(`      Format: ${day.format} | Goal: ${day.goal} | Angle: ${day.angle}`);
       if (index < data.days.length - 1) console.log();
     });
   }
@@ -224,13 +228,14 @@ export function formatCalendar(data) {
 
 export function printFileInfo(filePath) {
   console.log();
-  printDivider("·", 40);
-  console.log(colorize("gray", `  💾 已保存到: ${filePath}`));
+  printDivider("·", 50);
+  const filename = filePath.split("/").pop();
+  console.log(colorize("dim", `  ${filename} saved to .creator/outputs/`));
   console.log();
 }
 
 export function printProviderInfo(provider, model) {
   const providerInfo = colorize("cyan", provider);
-  const modelInfo = colorize("gray", `(${model})`);
-  console.log(colorize("dim", `  使用: ${providerInfo} ${modelInfo}`));
+  const modelInfo = colorize("dim", `(${model})`);
+  console.log(colorize("dim", `  ⏵ using: ${providerInfo} ${modelInfo}`));
 }
